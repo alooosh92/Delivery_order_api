@@ -1,5 +1,6 @@
 ﻿using Delivery_order.VModel;
 using Microsoft.Extensions.Hosting.Internal;
+using System.Diagnostics.Contracts;
 
 namespace Delivery_order.Controllers
 {
@@ -127,21 +128,57 @@ namespace Delivery_order.Controllers
                 return order;
             }
             catch { throw; }
-        }
-        [HttpPut]
-        [Route("UpdateUserInfo")]
+        }      
+        [HttpGet]
+        [Route("GetItemByEvaluation")]
         [Authorize(AuthenticationSchemes = "Bearer")]
-        public async Task<bool> UpdateUserInfo([FromBody]VMUser userInfo)
+        public async Task<List<VMItemByEvaluation>> GetItemByEvaluation()
         {
             try
             {
                 var user = UserManager.GetUserId(User);
-                userInfo.userId = user;
-                var b = await Repository.UpdateUserInfo(userInfo);
+                var item = await Repository.GetItemByEvaluation(user!);
+                return item;
+            }catch{ throw; }
+        }
+        [HttpGet]
+        [Route("GetRegions")]
+        [Authorize(AuthenticationSchemes = "Bearer")]
+        public async Task<List<Region>> GetRegions()
+        {
+            try
+            {
+                var regions = await Repository.GetRegion();
+                return regions;
+            }
+            catch { throw; }
+        }
+        [HttpGet]
+        [Route("GetUserInfo")]
+        [Authorize(AuthenticationSchemes = "Bearer")]
+        public async Task<VMUserInfo> GetUserInfo()
+        {
+            try
+            {
+                var user = UserManager.GetUserId(User);
+                var info = await Repository.GetUsersInfo(user!);
+                return info;
+            }
+            catch { throw; }
+        }
+        [HttpPut]
+        [Route("UpdateUserInfo")]
+        [Authorize(AuthenticationSchemes = "Bearer")]
+        public async Task<bool> UpdateUserInfo([FromBody] VMUserInfo info)
+        {
+            try
+            {
+                var user = UserManager.GetUserId(User);
+                info.Id = user;
+                var b = await Repository.UpdateUserInfo(info);
                 return b;
             }
             catch { throw; }
         }
-
     }
 }

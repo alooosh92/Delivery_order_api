@@ -26,7 +26,7 @@ namespace Delivery_order.Repository
         //User
         public Task<bool> AddUserLocation(AddUserLocation userLocation);       
         public Task<List<VMSUserLoction>> GetUserLocation(string userId);
-        public Task<bool> UpdateUserInfo (VMUser userInfo);
+       
         //User 
 
         //Get
@@ -37,7 +37,9 @@ namespace Delivery_order.Repository
         public Task<ItemPay> GetItemPay(Guid? itemPayId);
         public Task<List<ItemPay>> GetAllItemPayOrder(Guid? orderId);
         public Task<Order> GetOrder(Guid? shopId);
-        
-
+        public Task<List<VMItemByEvaluation>> GetItemByEvaluation(string userId);
+        public Task<List<Region>> GetRegion();
+        public Task<VMUserInfo> GetUsersInfo(string userId);
+        public Task<bool> UpdateUserInfo(VMUserInfo info);
     }
 }

@@ -29,7 +29,5 @@ namespace Delivery_order.Models
         public User? User { get; set; }
         [Required]
         public Shop? Shop {  get; set; }
-        //  public List<ItemPay>? Items { get; set; } = new List<ItemPay>();   
-
-    }
+        }
 }

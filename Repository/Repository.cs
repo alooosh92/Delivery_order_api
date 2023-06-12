@@ -1,5 +1,6 @@
 ﻿using Delivery_order.Models;
 using Delivery_order.VModel;
+using Microsoft.EntityFrameworkCore;
 
 namespace Delivery_order.Repository
 {
@@ -358,6 +359,19 @@ namespace Delivery_order.Repository
                 var user = await UserManager.FindByEmailAsync(userId);
                 var order = await Db.Order.Include(u => u.User).Include(s => s.Shop)
                     .Where(o => o.User == user).ToListAsync();
+                var vmOrder = new List<VMUserOrder>();
+                foreach (var item in order)
+                {
+                    var vm = new VMUserOrder
+                    {
+                        Id = item.Id,
+                        CreateDate = item.OrderDate,
+                        ShopName = item.Shop!.Name,
+                        Code = item.Pincode,
+                        Delivery = item.DeliveryPrice,
+                        
+                    };
+                }
                 return order;
             }
             catch { throw; }
@@ -457,6 +471,76 @@ namespace Delivery_order.Repository
                 .Include(u => u.User)
                    .SingleOrDefaultAsync(o => o.Id == orderId);
                 return order!;
+            }
+            catch { throw; }
+        }
+
+        public async Task<List<VMItemByEvaluation>> GetItemByEvaluation(string userId)
+        {
+            try
+            {
+                var user = await Db.Users.Include(r => r.Region).SingleOrDefaultAsync(a => a.Email == userId);
+                var itemes = await Db.Item.Include(a => a.Shop).
+                    Where(a => a.Shop!.Region == user!.Region).ToListAsync();
+                itemes = itemes.OrderByDescending(a => a.Evaluation).ThenByDescending(a=>a.ResidentsNumber).ToList();
+                List<VMItemByEvaluation> vmi = new List<VMItemByEvaluation>();
+                foreach (var item in itemes)
+                {
+                    var i = new VMItemByEvaluation{ 
+                        id = item.Id,
+                        name = item.Name,
+                        price = item.Price,
+                        Evaluation = item.Evaluation,
+                        shop = item.Shop!.Name,
+                        image = item.Image
+                    };
+                    vmi.Add(i);
+                }
+                return vmi;
+            }
+            catch { throw; }
+        }
+
+        public async Task<List<Region>> GetRegion()
+        {
+            try
+            {
+                var regions = await Db.Regions.ToListAsync();
+                return regions;
+            }
+            catch { throw; }
+        }
+
+        public async Task<VMUserInfo> GetUsersInfo(string userId)
+        {
+            try
+            {
+                var user = await Db.Users.Include(r => r.Region).SingleOrDefaultAsync(a => a.Email == userId);
+                var vmuser = new VMUserInfo
+                {
+                    Id = user!.Id,
+                    Mobile = user.PhoneNumber,
+                    Name = user.Name,
+                    Region = user.Region!.Id,
+                    Sex = user.Sex,
+                };
+                return vmuser;
+            }
+            catch { throw; }
+        }
+
+        public async Task<bool> UpdateUserInfo(VMUserInfo info)
+        {
+            try
+            {
+                var user = await Db.Users.Include(r => r.Region).SingleOrDefaultAsync(a => a.Email == info.Id);
+                user!.PhoneNumber = info.Mobile;
+                user.Name = info.Name;
+                user.Region = await Db.Regions.SingleOrDefaultAsync(a => a.Id == info.Region);
+                user.Sex = info.Sex;
+                Db.Users.Update(user);
+                await Db.SaveChangesAsync();
+                return true;
             }
             catch { throw; }
         }

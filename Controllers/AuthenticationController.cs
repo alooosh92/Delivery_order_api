@@ -419,6 +419,29 @@
             }
 
         }
+        public static async Task AddRegions(IServiceProvider provider)
+        {
+            var scopFactory = provider.GetRequiredService<IServiceScopeFactory>();
+            var region = scopFactory.CreateScope();
+            var re = region.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var regions =await re.Regions.ToListAsync();
+            if(regions.Count <14)
+            {
+                List<String> r = new List<string> { 
+                    "دمشق","حلب","حمص","طرطوس","اللاذقية","طرطوس","ادلب",
+                    "دير الزور","الرقة","القامشلي","ريف دمشق","القنيطرة",
+                    "درعا","تدمر"
+                };
+                foreach (var item in r)
+                {
+                    if (!re.Regions.Any(a => a.RegionName == item))
+                    {
+                        await re.Regions.AddAsync(new Region { RegionName = item });
+                    }
+                }
+                await re.SaveChangesAsync();
+            }
+        }
     }
 }
 

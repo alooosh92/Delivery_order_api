@@ -33,6 +33,7 @@ Seed.Setting(builder);
 var app = builder.Build();
 await Seed.AddRoll(app.Services, new List<string> { "User", "Admin", "Employee" }); //Add this line to add rolles
 await Seed.AddAdmin(app.Services, builder.Configuration["EmailSender:UserName"]!); //Add this line to add admin user
+await Seed.AddRegions(app.Services);
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
