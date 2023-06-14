@@ -17,12 +17,9 @@ namespace Delivery_order.Models
         public double ToLate { get; set; }
         [Required]
         public double ToLong { get; set; }
-        [Required, DefaultValue(false)]
-        public bool IsDone { get; set; }
-        [Required, DefaultValue(false)]
-        public bool RequestAccept { get; set; }
-        [Required, DefaultValue(false)]
-        public bool IsEnd { get; set; }
+        public DateTime? IsDone { get; set; }
+        public DateTime? RequestAccept { get; set; }
+        public DateTime? IsEnd { get; set; }
         [Required, MaxLength(4), MinLength(4)]
         public int Pincode { get; set; } = Random.Shared.Next(1000, 9999);
         [Required]

@@ -20,9 +20,9 @@ namespace Delivery_order.Repository
         {
             try
             {
-                await Db.Regions.AddAsync(new Region { RegionName = "حلب"});
-                await Db.SaveChangesAsync();
-                await Db.ShopTypes.AddAsync(new ShopType { Type = "وجبات سريعة" });
+                await Db.ShopTypes.AddAsync(new ShopType { Type = "وجبات سريعة" ,IsFood = true});
+                await Db.ShopTypes.AddAsync(new ShopType { Type = "أكلات غربية" ,IsFood =true});
+                await Db.ShopTypes.AddAsync(new ShopType { Type = "هدايا" , IsFood = false });
                 await Db.SaveChangesAsync();
                 await Db.Shop.AddAsync(new Shop
                 {
@@ -30,15 +30,75 @@ namespace Delivery_order.Repository
                     LocationLong = 0,
                     Name = "ماريو",
                     Region = await Db.Regions.FirstOrDefaultAsync(),
-                    Type = await Db.ShopTypes.FirstOrDefaultAsync(),
+                    Type = await Db.ShopTypes.FirstOrDefaultAsync(a=>a.Type == "وجبات سريعة"),
+                    UrlIcon = "3.jpeg",
+                    UrlImage = "4.jpg",
+                });
+                await Db.Shop.AddAsync(new Shop
+                {
+                    LocationLate = 0,
+                    LocationLong = 0,
+                    Name = "سبونج بب",
+                    Region = await Db.Regions.FirstOrDefaultAsync(),
+                    Type = await Db.ShopTypes.FirstOrDefaultAsync(a=>a.Type == "أكلات غربية"),
+                    UrlIcon = "3.jpeg",
+                    UrlImage = "4.jpg"
+                });
+                await Db.Shop.AddAsync(new Shop
+                {
+                    LocationLate = 0,
+                    LocationLong = 0,
+                    Name = "ريبون",
+                    Region = await Db.Regions.FirstOrDefaultAsync(),
+                    Type = await Db.ShopTypes.FirstOrDefaultAsync(a=>a.Type == "هدايا"),
                     UrlIcon = "3.jpeg",
                     UrlImage = "4.jpg"
                 });
                 await Db.SaveChangesAsync();
                 await Db.ShopDescription.AddAsync(new ShopDescription
                 {
-                    Description = "وجبات سريعة",
-                    Shop = await Db.Shop.FirstOrDefaultAsync(),
+                    Description = "جبنة",
+                    Shop = await Db.Shop.FirstOrDefaultAsync(a=>a.Name == "ماريو"),
+                });
+                await Db.ShopDescription.AddAsync(new ShopDescription
+                {
+                    Description = "بيتزا",
+                    Shop = await Db.Shop.FirstOrDefaultAsync(a => a.Name == "ماريو"),
+                });
+                await Db.ShopDescription.AddAsync(new ShopDescription
+                {
+                    Description = "مناقيش زعتر",
+                    Shop = await Db.Shop.FirstOrDefaultAsync(a => a.Name == "ماريو"),
+                });
+                await Db.ShopDescription.AddAsync(new ShopDescription
+                {
+                    Description = "جكن بركر",
+                    Shop = await Db.Shop.FirstOrDefaultAsync(a => a.Name == "سبونج بب"),
+                });
+                await Db.ShopDescription.AddAsync(new ShopDescription
+                {
+                    Description = "ميت بركر",
+                    Shop = await Db.Shop.FirstOrDefaultAsync(a => a.Name == "سبونج بب"),
+                });
+                await Db.ShopDescription.AddAsync(new ShopDescription
+                {
+                    Description = "معكرونة باشاميل",
+                    Shop = await Db.Shop.FirstOrDefaultAsync(a => a.Name == "سبونج بب"),
+                });
+                await Db.ShopDescription.AddAsync(new ShopDescription
+                {
+                    Description = "ساعات",
+                    Shop = await Db.Shop.FirstOrDefaultAsync(a => a.Name == "ريبون"),
+                });
+                await Db.ShopDescription.AddAsync(new ShopDescription
+                {
+                    Description = "عطور",
+                    Shop = await Db.Shop.FirstOrDefaultAsync(a => a.Name == "ريبون"),
+                });
+                await Db.ShopDescription.AddAsync(new ShopDescription
+                {
+                    Description = "ألعاب",
+                    Shop = await Db.Shop.FirstOrDefaultAsync(a => a.Name == "ريبون"),
                 });
                 await Db.SaveChangesAsync();
                 await Db.Item.AddAsync(new Item
@@ -68,9 +128,9 @@ namespace Delivery_order.Repository
             try
             {
                 //for test  -->
-                var b = await Db.Shop.ToListAsync();
-                if (b.IsNullOrEmpty()) 
-                    await AddDefulteValue();
+                // var b = await Db.Shop.ToListAsync();
+                // if (b.IsNullOrEmpty()) 
+                //      await AddDefulteValue();
                 //for test <--
                 Item? item = await GetItem(info.Item);
                 Order? order = await GetOrderShop(item.Shop!.Id,user);
@@ -162,7 +222,7 @@ namespace Delivery_order.Repository
             try
             {
                 var item = await GetItemPay(itemPayId);
-                if (item.Order!.IsDone) { return false; }
+                if (item.Order!.IsDone != null) { return false; }
                 var count = await GetAllItemPayOrder(item.Order.Id);                
                 Db.ItemPay.Remove(item);
                 if (count.Count == 1) {
@@ -179,7 +239,7 @@ namespace Delivery_order.Repository
             try
             {
                 var order = await GetOrder(orderId);
-                if (order.IsDone) { return false; }
+                if (order.IsDone != null) { return false; }
                 var itempay = await GetAllItemPayOrder(orderId);
                 foreach (var item in itempay)
                 {
@@ -207,9 +267,7 @@ namespace Delivery_order.Repository
             try
             {
                 var user = await Db.Users.Include(u => u.Region).SingleOrDefaultAsync(a => a.Email == userId);
-                var order = await Db.Order.Include(s => s.Shop!.Region)
-                    .Include(u => u.User).Where(d => d.IsDone && !d.IsEnd && d.Shop!.Region == user!.Region)
-                    .ToListAsync();
+                var order = await Db.Order.Include(s => s.Shop!.Region).Include(u => u.User).Where(d => d.IsDone != null && d.IsEnd == null && d.Shop!.Region == user!.Region).ToListAsync();
                 return order;
             }
             catch { throw; }
@@ -233,7 +291,7 @@ namespace Delivery_order.Repository
                 Order? order = await Db.Order
                    .Include(s => s.Shop)
                 .Include(u => u.User)
-                   .SingleOrDefaultAsync(o =>o.User == user && !o.IsDone && o.Shop!.Id == shopId);
+                   .SingleOrDefaultAsync(o =>o.User == user && o.IsDone == null && o.Shop!.Id == shopId);
                 return order!;
             }
             catch { throw; }
@@ -352,7 +410,7 @@ namespace Delivery_order.Repository
             catch { throw; }
         }
 
-        public async Task<List<Order>> GetUserOrder(string userId)
+        public async Task<List<VMUserOrder>> GetUserOrder(string userId)
         {
             try
             {
@@ -362,6 +420,18 @@ namespace Delivery_order.Repository
                 var vmOrder = new List<VMUserOrder>();
                 foreach (var item in order)
                 {
+                    var itemOr = await GetAllItemPayOrder(item.Id);
+                    var list = new List<TabelRowItem>();
+                    foreach (var item1 in itemOr)
+                    {
+                        var t = new TabelRowItem
+                        {
+                            ItemName = item1.Item!.Name,
+                            Number = item1.NumberOfItem,
+                            Price = item1.Item.Price,
+                        };
+                        list.Add(t);
+                    }
                     var vm = new VMUserOrder
                     {
                         Id = item.Id,
@@ -369,10 +439,14 @@ namespace Delivery_order.Repository
                         ShopName = item.Shop!.Name,
                         Code = item.Pincode,
                         Delivery = item.DeliveryPrice,
-                        
+                        ConfirmOrder = item.IsDone,
+                        DeliveryTime = item.IsEnd,
+                        AccseptOrder = item.RequestAccept,
+                        ListOrder = list,
                     };
+                    vmOrder.Add(vm);
                 }
-                return order;
+                return vmOrder;
             }
             catch { throw; }
         }
@@ -382,7 +456,7 @@ namespace Delivery_order.Repository
             try
             {
                 var order = await GetOrder(orderId);
-                order.IsDone = true;
+                order.IsDone = DateTime.Now;
                 Db.Order.Update(order);
                 await Db.SaveChangesAsync();
                 return order;
@@ -401,7 +475,7 @@ namespace Delivery_order.Repository
                     Order = order,
                 };                
                 await Db.DeliveryEmployees.AddAsync(devOrd);
-                order.RequestAccept = true;
+                order.RequestAccept = DateTime.Now;
                 Db.Order.Update(order);
                 await Db.SaveChangesAsync();
                 return order;
@@ -541,6 +615,32 @@ namespace Delivery_order.Repository
                 Db.Users.Update(user);
                 await Db.SaveChangesAsync();
                 return true;
+            }
+            catch { throw; }
+        }
+
+        public async Task<List<VMItemByEvaluation>> GetItemByShop(Guid shopId)
+        {
+            try
+            {                
+                var itemes = await Db.Item.Include(a => a.Shop).
+                    Where(a => a.Shop!.Id == shopId).ToListAsync();
+                itemes = itemes.OrderByDescending(a => a.Evaluation).ThenByDescending(a => a.ResidentsNumber).ToList();
+                List<VMItemByEvaluation> vmi = new List<VMItemByEvaluation>();
+                foreach (var item in itemes)
+                {
+                    var i = new VMItemByEvaluation
+                    {
+                        id = item.Id,
+                        name = item.Name,
+                        price = item.Price,
+                        Evaluation = item.Evaluation,
+                        shop = item.Shop!.Name,
+                        image = item.Image
+                    };
+                    vmi.Add(i);
+                }
+                return vmi;
             }
             catch { throw; }
         }

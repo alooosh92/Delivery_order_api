@@ -124,11 +124,11 @@ namespace Delivery_order.Migrations
                     b.Property<double>("FromLong")
                         .HasColumnType("float");
 
-                    b.Property<bool>("IsDone")
-                        .HasColumnType("bit");
+                    b.Property<DateTime?>("IsDone")
+                        .HasColumnType("datetime2");
 
-                    b.Property<bool>("IsEnd")
-                        .HasColumnType("bit");
+                    b.Property<DateTime?>("IsEnd")
+                        .HasColumnType("datetime2");
 
                     b.Property<DateTime?>("OrderDate")
                         .HasColumnType("datetime2");
@@ -137,8 +137,8 @@ namespace Delivery_order.Migrations
                         .HasMaxLength(4)
                         .HasColumnType("int");
 
-                    b.Property<bool>("RequestAccept")
-                        .HasColumnType("bit");
+                    b.Property<DateTime?>("RequestAccept")
+                        .HasColumnType("datetime2");
 
                     b.Property<Guid>("ShopId")
                         .HasColumnType("uniqueidentifier");

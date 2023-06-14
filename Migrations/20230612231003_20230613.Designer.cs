@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Delivery_order.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20230605103249_20230506")]
-    partial class _20230506
+    [Migration("20230612231003_20230613")]
+    partial class _20230613
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -59,6 +59,10 @@ namespace Delivery_order.Migrations
 
                     b.Property<double>("Evaluation")
                         .HasColumnType("float");
+
+                    b.Property<string>("Image")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -123,11 +127,11 @@ namespace Delivery_order.Migrations
                     b.Property<double>("FromLong")
                         .HasColumnType("float");
 
-                    b.Property<bool>("IsDone")
-                        .HasColumnType("bit");
+                    b.Property<DateTime?>("IsDone")
+                        .HasColumnType("datetime2");
 
-                    b.Property<bool>("IsEnd")
-                        .HasColumnType("bit");
+                    b.Property<DateTime?>("IsEnd")
+                        .HasColumnType("datetime2");
 
                     b.Property<DateTime?>("OrderDate")
                         .HasColumnType("datetime2");
@@ -136,8 +140,8 @@ namespace Delivery_order.Migrations
                         .HasMaxLength(4)
                         .HasColumnType("int");
 
-                    b.Property<bool>("RequestAccept")
-                        .HasColumnType("bit");
+                    b.Property<DateTime?>("RequestAccept")
+                        .HasColumnType("datetime2");
 
                     b.Property<Guid>("ShopId")
                         .HasColumnType("uniqueidentifier");
@@ -242,6 +246,14 @@ namespace Delivery_order.Migrations
 
                     b.Property<Guid>("TypeId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("UrlIcon")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UrlImage")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 

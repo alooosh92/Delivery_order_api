@@ -107,7 +107,7 @@ namespace Delivery_order.Controllers
         [HttpGet]
         [Route("GetUserOrder")]
         [Authorize(AuthenticationSchemes = "Bearer")]
-        public async Task<List<Order>> GetUserOrder()
+        public async Task<List<VMUserOrder>> GetUserOrder()
         {
             try
             {
@@ -177,6 +177,18 @@ namespace Delivery_order.Controllers
                 info.Id = user;
                 var b = await Repository.UpdateUserInfo(info);
                 return b;
+            }
+            catch { throw; }
+        }
+        [HttpGet]
+        [Route("GetItemByShop")]
+        [Authorize(AuthenticationSchemes = "Bearer")]
+        public async Task<List<VMItemByEvaluation>> GetItemByShop([FromBody]Guid shopId)
+        {
+            try
+            {
+                var item = await Repository.GetItemByShop(shopId);
+                return item;
             }
             catch { throw; }
         }

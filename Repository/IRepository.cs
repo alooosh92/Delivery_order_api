@@ -7,7 +7,7 @@ namespace Delivery_order.Repository
         //Order
         public Task<Order> AddItem(AddItemToOrdre info, User user);
         public Task<Order> OrderDone(Guid orderId);
-        public Task<List<Order>> GetUserOrder(string userid);
+        public Task<List<VMUserOrder>> GetUserOrder(string userid);
         public Task<List<Order>> GetDoneOrderByRegion(string user);
         public Task<double> GetPrice(Guid OrderId);        
         public Task<bool> DeleteOrder(Guid?  OrderId);
@@ -41,5 +41,6 @@ namespace Delivery_order.Repository
         public Task<List<Region>> GetRegion();
         public Task<VMUserInfo> GetUsersInfo(string userId);
         public Task<bool> UpdateUserInfo(VMUserInfo info);
+        public Task<List<VMItemByEvaluation>> GetItemByShop(Guid shopId);
     }
 }
