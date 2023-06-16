@@ -249,7 +249,7 @@
             var user = await _userManager.FindByEmailAsync(userModel.UserName);
             if (user == null || !await _userManager.CheckPasswordAsync(user, userModel.Password)) { return new AuthModel { Message = "username or password is Wrong" }; }
             var token = await CreateJwtSecurityToken(user);
-            RefreshToken oldRefreshToken = _db.RefreshTokens.SingleOrDefault(r => r.UserId == user.Id && r.RevokedON == null && DateTime.UtcNow >= r.Expirson)!;
+            RefreshToken? oldRefreshToken = _db.RefreshTokens.SingleOrDefault(r => r.UserId == user.Id && r.RevokedON == null && DateTime.UtcNow >= r.Expirson);
             if (oldRefreshToken != null)
             {
                 await RevokeToken(oldRefreshToken.Token!);

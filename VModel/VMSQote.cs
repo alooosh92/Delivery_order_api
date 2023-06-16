@@ -5,5 +5,6 @@
         [Required] public Guid? Id { get; set; }
         [Required] public string? ImageUrl { get; set; }
         [Required] public string? Shoptype { get; set; }
+        [Required] public Guid? ShopId { get; set; }
     }
 }

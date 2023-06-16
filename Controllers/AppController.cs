@@ -180,10 +180,10 @@ namespace Delivery_order.Controllers
             }
             catch { throw; }
         }
-        [HttpGet]
-        [Route("GetItemByShop")]
+        [HttpPost]
+        [Route("GetShop")]
         [Authorize(AuthenticationSchemes = "Bearer")]
-        public async Task<List<VMItemByEvaluation>> GetItemByShop([FromBody]Guid shopId)
+        public async Task<VMShop> GetIShop([FromBody]Guid shopId)
         {
             try
             {

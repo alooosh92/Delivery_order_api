@@ -365,7 +365,8 @@ namespace Delivery_order.Repository
                     {
                         Id = item.Id,
                         ImageUrl = item.ImageUrl,
-                        Shoptype = item.Shop!.Type!.Type
+                        Shoptype = item.Shop!.Type!.Type,
+                        ShopId = item.Shop!.Id,
                     };
                     vmqote.Add(q);
                 }
@@ -619,7 +620,7 @@ namespace Delivery_order.Repository
             catch { throw; }
         }
 
-        public async Task<List<VMItemByEvaluation>> GetItemByShop(Guid shopId)
+        public async Task<VMShop> GetItemByShop(Guid shopId)
         {
             try
             {                
@@ -640,7 +641,31 @@ namespace Delivery_order.Repository
                     };
                     vmi.Add(i);
                 }
-                return vmi;
+                VMShop shop = new VMShop();
+                var s = await GetShop(shopId);
+                var d = await Db.ShopDescription.Where(a => a.Shop == s).ToListAsync();
+                var LD = new List<string>();
+                foreach (var item in d)
+                {
+                    LD.Add(item.Description!);
+                }
+                var vs = new VMSShop
+                {
+                    Id = s.Id,
+                    Evaluation = s.Evaluation,
+                    LateLocation = s.LocationLate,
+                    LongLocation = s.LocationLong,
+                    ResidentsNumber = s.ResidentsNumber,
+                    ShopName = s.Name,
+                    UrlImage = s.UrlImage,
+                    UrlLogo = s.UrlIcon,
+                    IsFood = s.Type!.IsFood,
+                    Type = s.Type.Type,
+                    ShopDescription = LD,
+                };
+                shop.ListItem = vmi;
+                shop.Shop = vs;
+                return shop;
             }
             catch { throw; }
         }

@@ -41,6 +41,6 @@ namespace Delivery_order.Repository
         public Task<List<Region>> GetRegion();
         public Task<VMUserInfo> GetUsersInfo(string userId);
         public Task<bool> UpdateUserInfo(VMUserInfo info);
-        public Task<List<VMItemByEvaluation>> GetItemByShop(Guid shopId);
+        public Task<VMShop> GetItemByShop(Guid shopId);
     }
 }
