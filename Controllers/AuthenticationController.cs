@@ -6,9 +6,13 @@
     public class AuthenticationController : ControllerBase
     {
         private readonly IAuthServies _authServies;
-        public AuthenticationController(IAuthServies authServies)
+
+        public UserManager<User> UserManager { get; }
+
+        public AuthenticationController(IAuthServies authServies,UserManager<User> userManager)
         {
             _authServies = authServies;
+            UserManager = userManager;
         }
         [HttpPost]
         [Route("Register")]
@@ -26,10 +30,13 @@
         }
         [HttpPost]
         [Route("ChangePassword")]
+        [Authorize(AuthenticationSchemes = "Bearer")]
         public async Task<ActionResult<AuthModel>> ChangePassword([FromBody] UserModelPassword userModel)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
-            return await _authServies.ChangePassword(userModel);
+            var user = UserManager.GetUserId(User);
+            if (user == null) return BadRequest();
+            return await _authServies.ChangePassword(userModel,user);
         }
         [HttpPost]
         [Route("ForgetPassword")]
@@ -82,10 +89,6 @@
     public class UserModelPassword
     {
         [Required]
-        [EmailAddress]
-        public string? UserName { get; set; }
-        [Required]
-        [MinLength(6)]
         public string? OldPassword { get; set; }
         [Required]
         [MinLength(6)]
@@ -120,7 +123,7 @@
         Task<ActionResult<AuthModel>> Register(UserModel userModel);
         Task<ActionResult<AuthModel>> Login(UserModel userModel);
         Task<ActionResult<bool>> ForgetPassword(string username);
-        Task<ActionResult<AuthModel>> ChangePassword(UserModelPassword userModel);
+        Task<ActionResult<AuthModel>> ChangePassword(UserModelPassword userModel,string username);
         Task<ActionResult<AuthModel>> RefreshToken(string token);
         Task<bool> RevokeToken(string token);
     }
@@ -202,7 +205,7 @@
             {
                 UserId = userId,
                 CreatedOn = DateTime.UtcNow,
-                Expirson = DateTime.UtcNow.AddDays(1),
+                Expirson = DateTime.UtcNow.AddDays(30),
                 Id = Guid.NewGuid().ToString(),
                 Token = Convert.ToBase64String(randomNumber),
             };
@@ -249,10 +252,13 @@
             var user = await _userManager.FindByEmailAsync(userModel.UserName);
             if (user == null || !await _userManager.CheckPasswordAsync(user, userModel.Password)) { return new AuthModel { Message = "username or password is Wrong" }; }
             var token = await CreateJwtSecurityToken(user);
-            RefreshToken? oldRefreshToken = _db.RefreshTokens.SingleOrDefault(r => r.UserId == user.Id && r.RevokedON == null && DateTime.UtcNow >= r.Expirson);
+            List<RefreshToken>? oldRefreshToken = await _db.RefreshTokens.Where(r => r.UserId == user.Id && r.RevokedON == null/* && DateTime.UtcNow >= r.Expirson*/).ToListAsync();
             if (oldRefreshToken != null)
             {
-                await RevokeToken(oldRefreshToken.Token!);
+                foreach (var rToken in oldRefreshToken)
+                {
+                    await RevokeToken(rToken.Token!);
+                }
             }
             var refreshToken = GeneraterRefreshToken(user.Id);
             _db.RefreshTokens!.Add(refreshToken);
@@ -269,14 +275,14 @@
             };
             return rutToken;
         }
-        public async Task<ActionResult<AuthModel>> ChangePassword(UserModelPassword userModel)
+        public async Task<ActionResult<AuthModel>> ChangePassword(UserModelPassword userModel,string username)
         {
-            var user = await _userManager.FindByNameAsync(userModel.UserName!);
+            var user = await _userManager.FindByNameAsync(username);
             if (user == null) return new AuthModel { Message = "Error" };
             var res = await _userManager.ChangePasswordAsync(user,
                 userModel.OldPassword!, userModel.NewPassword!);
             if (!res.Succeeded) return new AuthModel { Message = "something is Error" };
-            return await Login(new UserModel { UserName = userModel.UserName, Password = userModel.NewPassword });
+            return await Login(new UserModel { UserName = username, Password = userModel.NewPassword });
         }
         public async Task<ActionResult<bool>> ForgetPassword(string username)
         {
@@ -323,7 +329,7 @@
         {
             var toke = await _db.RefreshTokens.SingleOrDefaultAsync(t => t.Token == token);
             if (toke == null) return false;
-            if (!(toke.RevokedON == null && DateTime.UtcNow <= toke.Expirson)) return false;
+            if (!(toke.RevokedON == null/* && DateTime.UtcNow <= toke.Expirson*/)) return false;
             toke.RevokedON = DateTime.UtcNow;
             _db.RefreshTokens.Update(toke);
             await _db.SaveChangesAsync();

@@ -457,7 +457,10 @@ namespace Delivery_order.Repository
             try
             {
                 var order = await GetOrder(orderId);
+                var user = order.User!;
+                user.UserPoint += order.DeliveryPrice * 0.01; 
                 order.IsDone = DateTime.Now;
+                Db.Users.Update(user);
                 Db.Order.Update(order);
                 await Db.SaveChangesAsync();
                 return order;
@@ -598,6 +601,7 @@ namespace Delivery_order.Repository
                     Name = user.Name,
                     Region = user.Region!.Id,
                     Sex = user.Sex,
+                    point = user.UserPoint
                 };
                 return vmuser;
             }
@@ -668,6 +672,39 @@ namespace Delivery_order.Repository
                 return shop;
             }
             catch { throw; }
+        }
+
+        public async Task<VMitem> GetItemInof(Guid itemId)
+        {
+            try
+            {
+                var item = await Db.Item.Include(a=>a.Shop!.Region).SingleOrDefaultAsync(a => a.Id == itemId);
+                var vmitem = new VMitem
+                {
+                    Id = item!.Id,
+                    Evaluation = item.Evaluation,
+                    Image = item.Image,
+                    Info = item.Description,
+                    Name = item.Name,
+                    Price = item.Price,
+                    Shopid = item.Shop!.Id,
+                    ShopLate = item.Shop.LocationLate,
+                    ShopLong = item.Shop.LocationLong,
+                };
+                return vmitem;
+            }
+            catch { throw; }
+        }
+
+        public async Task<bool> DeleteUserLocation(Guid id)
+        {
+            try
+            {
+                var location = await Db.UserLocation.SingleOrDefaultAsync(a => a.Id == id);
+                Db.UserLocation.Remove(location!);
+                await Db.SaveChangesAsync();
+                return true;
+            }catch { throw; }
         }
     }
 }

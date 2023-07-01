@@ -42,5 +42,7 @@ namespace Delivery_order.Repository
         public Task<VMUserInfo> GetUsersInfo(string userId);
         public Task<bool> UpdateUserInfo(VMUserInfo info);
         public Task<VMShop> GetItemByShop(Guid shopId);
+        public Task<VMitem> GetItemInof(Guid itemId);
+        public Task<bool> DeleteUserLocation(Guid id);
     }
 }

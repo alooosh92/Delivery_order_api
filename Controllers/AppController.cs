@@ -143,7 +143,7 @@ namespace Delivery_order.Controllers
         }
         [HttpGet]
         [Route("GetRegions")]
-        [Authorize(AuthenticationSchemes = "Bearer")]
+        // [Authorize(AuthenticationSchemes = "Bearer")]
         public async Task<List<Region>> GetRegions()
         {
             try
@@ -189,6 +189,29 @@ namespace Delivery_order.Controllers
             {
                 var item = await Repository.GetItemByShop(shopId);
                 return item;
+            }
+            catch { throw; }
+        }
+        [HttpPost]
+        [Route("GetItemInof")]
+        [Authorize(AuthenticationSchemes = "Bearer")]
+        public async Task<VMitem> GetItemInof([FromBody] Guid itemId)
+        {
+            try
+            {
+                var item = await Repository.GetItemInof(itemId);
+                return item;
+            }
+            catch { throw; }
+        }
+        [HttpDelete]
+        [Route("DeleteUserLocation")]
+        public async Task<bool> DeleteUserLocation([FromBody] Guid Id)
+        {
+            try
+            {
+                var loc = await Repository.DeleteUserLocation(Id);
+                return loc;
             }
             catch { throw; }
         }

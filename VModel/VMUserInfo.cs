@@ -7,5 +7,6 @@
         [Required] public string? Mobile { get; set; }
         [Required] public bool Sex { get; set; }
         [Required] public int? Region { get; set; }
+        [Required] public double? point { get; set; }
     }
 }
