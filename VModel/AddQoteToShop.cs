@@ -7,5 +7,7 @@
         [Required] public string? ImageUrl { get; set; }
         [Required] public double? Price { get; set; }
         [Required] public Guid? Shop { get; set; }
+        [Required] public string? Title { get; set; }
+        [Required] public string? Body { get; set; }
     }
 }

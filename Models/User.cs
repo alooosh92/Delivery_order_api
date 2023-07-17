@@ -11,5 +11,6 @@
         public Region? Region { get; set; }
         public string? Adress { get; set; }
         public string? InvitationLink { get; set; } = Guid.NewGuid().ToString().Trim();
+        public string? fireBaseToken { get; set; }
     }
 }

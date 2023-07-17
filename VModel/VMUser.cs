@@ -13,5 +13,6 @@
         public string? Adress { get; set; }
         [Required,Phone]
         public string? Phone { get; set; }
+        public string? fireBaseToken { get; set; }
     }
 }

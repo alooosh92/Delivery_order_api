@@ -85,6 +85,8 @@
         [Required]
         [MinLength(6)]
         public string? Password { get; set; }
+        [Required]
+        public string? tokenFirebase { get; set; }
     }
     public class UserModelPassword
     {
@@ -224,6 +226,7 @@
                 Name = "",
                 UserPoint = 500,
                 Sex = true,
+                fireBaseToken = userModel.tokenFirebase,
             };
             var res = await _userManager.CreateAsync(user, userModel.Password!);
             if (!res.Succeeded) { return new AuthModel { Message = "Error" }; }
@@ -262,6 +265,8 @@
             }
             var refreshToken = GeneraterRefreshToken(user.Id);
             _db.RefreshTokens!.Add(refreshToken);
+            user.fireBaseToken = userModel.tokenFirebase;
+            _db.Users.Update(user);
             _db.SaveChanges();
             var rutToken = new AuthModel
             {

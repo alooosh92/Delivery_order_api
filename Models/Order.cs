@@ -24,7 +24,7 @@ namespace Delivery_order.Models
         public int Pincode { get; set; } = Random.Shared.Next(1000, 9999);
         [Required]
         public User? User { get; set; }
-        [Required]
+        
         public Shop? Shop {  get; set; }
         }
 }

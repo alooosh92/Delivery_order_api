@@ -1,4 +1,6 @@
-﻿namespace Delivery_order.Controllers
+﻿using FirebaseAdmin.Messaging;
+
+namespace Delivery_order.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
@@ -74,6 +76,30 @@
                 };
                 var order = await Repository.RequestAccept(vmr);
                 return order;
+            }
+            catch { throw; }
+        }
+        [HttpPost]
+        [Route("SentMessageToManyUser")]
+        [Authorize(AuthenticationSchemes = "Bearer")]
+        public async Task<bool> SentMessageToManyUser([FromBody] VMMessage message)
+        {
+            try
+            {
+                var b = await Repository.SentMessageToManyUser(message.Title, message.Message, message.Region);
+                return b;
+            }
+            catch { throw; }
+        }
+        [HttpPost]
+        [Route("SentMessageToManyEmployee")]
+        [Authorize(AuthenticationSchemes = "Bearer")]
+        public async Task<bool> SentMessageToManyEmployee([FromBody] VMMessage message)
+        {
+            try
+            {
+                var b = await Repository.SentMessageToManyEmployee(message.Title, message.Message, message.Region);
+                return b;
             }
             catch { throw; }
         }

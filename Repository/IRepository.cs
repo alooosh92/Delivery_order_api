@@ -5,6 +5,7 @@ namespace Delivery_order.Repository
     public interface IRepository
     {
         //Order
+        public Task<Order> AddOrder(VMOrder order);
         public Task<Order> AddItem(AddItemToOrdre info, User user);
         public Task<Order> OrderDone(Guid orderId);
         public Task<List<VMUserOrder>> GetUserOrder(string userid);
@@ -44,5 +45,7 @@ namespace Delivery_order.Repository
         public Task<VMShop> GetItemByShop(Guid shopId);
         public Task<VMitem> GetItemInof(Guid itemId);
         public Task<bool> DeleteUserLocation(Guid id);
+        public Task<bool> SentMessageToManyUser(string? title, string? body, string? region);
+        public Task<bool> SentMessageToManyEmployee(string? title, string? body, string? region);
     }
 }

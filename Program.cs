@@ -21,6 +21,8 @@ global using Delivery_order.Data;
 global using jwt;
 global using Delivery_order.Repository;
 global using Delivery_order.VModel;
+using FirebaseAdmin;
+using Google.Apis.Auth.OAuth2;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
@@ -31,6 +33,10 @@ builder.Services.AddDbContext<ApplicationDbContext>(
 builder.Services.AddScoped<IRepository,Repository>();
 Seed.Setting(builder);
 var app = builder.Build();
+FirebaseApp.Create(new AppOptions()
+{
+    Credential = GoogleCredential.FromFile("delivery-order.json")
+});
 await Seed.AddRoll(app.Services, new List<string> { "User", "Admin", "Employee" }); //Add this line to add rolles
 await Seed.AddAdmin(app.Services, builder.Configuration["EmailSender:UserName"]!); //Add this line to add admin user
 await Seed.AddRegions(app.Services);

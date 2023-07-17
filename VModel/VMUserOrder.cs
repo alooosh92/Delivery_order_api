@@ -5,7 +5,7 @@ namespace Delivery_order.VModel
     public class VMUserOrder
     {
         [Required]public Guid? Id { get; set; }
-        [Required] public string? ShopName { get; set; }
+         public string? ShopName { get; set; }
         [Required] public DateTime? CreateDate { get; set; }
         [Required] public DateTime? ConfirmOrder { get; set; }
         [Required] public DateTime? AccseptOrder { get; set; }

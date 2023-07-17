@@ -31,6 +31,19 @@ namespace Delivery_order.Controllers
             catch { throw; }
         }
         [HttpPost]
+        [Route("AddOrder")]
+        [Authorize(AuthenticationSchemes = "Bearer")]
+        public async Task<Order> AddOrder([FromBody] VMOrder info)
+        {
+            try
+            {
+                var order = await Repository.AddOrder(info);
+                return order!;
+            }
+            catch { throw; }
+        }
+
+        [HttpPost]
         [Route("AddUserLocation")]
         [Authorize(AuthenticationSchemes = "Bearer")]
         public async Task<bool> AddUserLocation([FromBody] AddUserLocation addUserLocation)
@@ -206,6 +219,7 @@ namespace Delivery_order.Controllers
         }
         [HttpDelete]
         [Route("DeleteUserLocation")]
+        [Authorize(AuthenticationSchemes = "Bearer")]
         public async Task<bool> DeleteUserLocation([FromBody] Guid Id)
         {
             try
@@ -214,6 +228,6 @@ namespace Delivery_order.Controllers
                 return loc;
             }
             catch { throw; }
-        }
+        }         
     }
 }

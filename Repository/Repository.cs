@@ -1,5 +1,8 @@
 ﻿using Delivery_order.Models;
 using Delivery_order.VModel;
+using FirebaseAdmin;
+using FirebaseAdmin.Messaging;
+using Google.Apis.Auth.OAuth2;
 using Microsoft.EntityFrameworkCore;
 
 namespace Delivery_order.Repository
@@ -165,16 +168,18 @@ namespace Delivery_order.Repository
         {
             try
             {
+                var shop = await GetShop(qote.Shop);
                 var addqote = new Qote
                 {
                     StartDate = qote.StartDate,
                     EndDate = qote.EndDate,
                     ImageUrl = qote.ImageUrl,
                     Price = qote.Price,
-                    Shop = await GetShop(qote.Shop),
+                    Shop = shop
                 };
                 var entity = await Db.Qote.AddAsync(addqote);
                 await Db.SaveChangesAsync();
+                await SentMessageToManyUser(qote.Title,qote.Body,shop.Region!.RegionName);
                 return entity.Entity.Shop!;
             }
             catch { throw; }
@@ -437,7 +442,7 @@ namespace Delivery_order.Repository
                     {
                         Id = item.Id,
                         CreateDate = item.OrderDate,
-                        ShopName = item.Shop!.Name,
+                        ShopName = item.Shop == null? null: item.Shop!.Name,
                         Code = item.Pincode,
                         Delivery = item.DeliveryPrice,
                         ConfirmOrder = item.IsDone,
@@ -447,7 +452,7 @@ namespace Delivery_order.Repository
                     };
                     vmOrder.Add(vm);
                 }
-                return vmOrder;
+                return vmOrder.OrderByDescending(a=>a.CreateDate).ToList();
             }
             catch { throw; }
         }
@@ -463,6 +468,7 @@ namespace Delivery_order.Repository
                 Db.Users.Update(user);
                 Db.Order.Update(order);
                 await Db.SaveChangesAsync();
+                await SentMessageToManyEmployee("طلبية جديدة","تم انشاء طلبية جديدة الرجاء مراجعة التطبيق",order.Shop.Region!.RegionName);
                 return order;
             }
             catch { throw; }
@@ -482,6 +488,7 @@ namespace Delivery_order.Repository
                 order.RequestAccept = DateTime.Now;
                 Db.Order.Update(order);
                 await Db.SaveChangesAsync();
+                await SentMessage("قبول الطلب",$"{user!.Name} تم قبول طلبك من قبل السائق",order.User!.fireBaseToken);
                 return order;
             }
             catch { throw; }
@@ -545,8 +552,8 @@ namespace Delivery_order.Repository
             try
             {
                 Order? order = await Db.Order
-                   .Include(s => s.Shop)
-                .Include(u => u.User)
+                   .Include(s => s.Shop!.Region)
+                .Include(u => u.User!.Region)
                    .SingleOrDefaultAsync(o => o.Id == orderId);
                 return order!;
             }
@@ -706,5 +713,102 @@ namespace Delivery_order.Repository
                 return true;
             }catch { throw; }
         }
+
+        public async Task<Order> AddOrder(VMOrder info)
+        {
+
+            try
+            {
+               var userloc = await Db.UserLocation.Include(a=>a.User).SingleOrDefaultAsync(a => a.Id == info.LocationId);
+               var order = new Order
+                {
+                    DeliveryPrice = info.Price,
+                    FromLate = info.Late,
+                    FromLong = info.Long,
+                    ToLate = userloc!.LocationLate,
+                    ToLong = userloc.LocationLong,
+                    User = userloc.User,
+                };
+                await Db.Order.AddAsync(order);
+                await Db.SaveChangesAsync();
+                return order!;
+            }
+            catch { throw; }
+        }
+        private async Task<bool> SentMessage(string? title, string? body,string? token)
+        {
+            try
+            {                
+                var regToken = token;
+                var message = new Message() { 
+                    Token = regToken,
+                    Notification = new Notification() { 
+                    Body = body,
+                    Title = title
+                    },
+                };
+                var response = await FirebaseMessaging.DefaultInstance.SendAsync(message);
+                if (response != null) { return true; }
+                return false;
+            }
+            catch { throw; }
+        }
+        public async Task<bool> SentMessageToManyUser(string? title, string? body, string? region)
+        {
+            try
+            {
+                var users = await  Db.Users.Include(a => a.Region).Where(a => a.Region!.RegionName == region).ToListAsync();
+                List<Message> messages = new List<Message>();
+                foreach (var user in users)
+                {
+                    if (!user.fireBaseToken.IsNullOrEmpty())
+                    {
+                        var message = new Message()
+                        {
+                            Token = user.fireBaseToken,
+                            Notification = new Notification()
+                            {
+                                Body = body,
+                                Title = title
+                            },
+                        };
+                        messages.Add(message);
+                    }
+                }
+                var response = await FirebaseMessaging.DefaultInstance.SendAllAsync(messages);
+                if(response != null) { return true; }
+                return false;
+            }
+            catch { throw; }
+        }
+        public async Task<bool> SentMessageToManyEmployee(string? title, string? body, string? region)
+        {
+            try
+            {
+                var users = await UserManager.GetUsersInRoleAsync("Employee");
+                List<Message> messages = new List<Message>();
+                foreach (var user in users)
+                {
+                    if (user.Region!.RegionName == region && !user.fireBaseToken.IsNullOrEmpty())
+                    {
+                        var message = new Message()
+                        {
+                            Token = user.fireBaseToken,
+                            Notification = new Notification()
+                            {
+                                Body = body,
+                                Title = title
+                            },
+                        };
+                        messages.Add(message);
+                    }
+                }
+                var response = await FirebaseMessaging.DefaultInstance.SendAllAsync(messages);
+                if (response != null) { return true; }
+                return false;
+            }
+            catch { throw; }
+        }
+        
     }
 }
